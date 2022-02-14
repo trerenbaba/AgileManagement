@@ -6,6 +6,7 @@ using AgileManagement.Mvc.Services;
 using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -22,14 +23,16 @@ namespace AgileManagement.Mvc.Areas.Admin.Controllers
         private readonly IProjectWithContributorsRequestService _projectWithContributorsRequestService;
         private readonly IMapper _mapper;
         private readonly IContributorProjectAccessApprovementService _contributorProjectAccessApprovementService;
+        private readonly IProjectWithSprintRequestService _projectWithSprintRequestService;
 
-        public ProjectController(IProjectRepository projectRepository, IUserRepository userRepository, IProjectWithContributorsRequestService projectWithContributorsRequestService, IMapper mapper, AuthenticatedUser authenticatedUser, IContributorProjectAccessApprovementService contributorProjectAccessApprovementService) : base(authenticatedUser)
+        public ProjectController(IProjectRepository projectRepository, IUserRepository userRepository, IProjectWithContributorsRequestService projectWithContributorsRequestService, IMapper mapper, AuthenticatedUser authenticatedUser, IContributorProjectAccessApprovementService contributorProjectAccessApprovementService, IProjectWithSprintRequestService projectWithSprintRequestService) : base(authenticatedUser)
         {
             _projectRepository = projectRepository;
             _userRepository = userRepository;
             _projectWithContributorsRequestService = projectWithContributorsRequestService;
             _mapper = mapper;
             _contributorProjectAccessApprovementService = contributorProjectAccessApprovementService;
+            _projectWithSprintRequestService = projectWithSprintRequestService;
         }
 
         public IActionResult Index()
@@ -118,6 +121,29 @@ namespace AgileManagement.Mvc.Areas.Admin.Controllers
 
             return Json("OK");
 
+        }
+
+
+        public IActionResult AddSprintRequest(string projectId)
+        {
+            var response = _projectWithSprintRequestService.OnProcess(projectId);
+            return View(response);
+        }
+
+        [HttpPost]
+        public IActionResult AddSprintRequest([FromBody] SprintInputModel model)
+        {
+
+            try
+            {
+                var project = _projectRepository.GetQuery().Include(x => x.Sprints).Where(c => c.Id == model.ProjectId).FirstOrDefault();
+                project.AddSprint(new Sprint(model.StartDate, model.EndDate));
+                return Json(new { isSuccess = true, message = "ok" });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { isSuccess = false, message = ex.Message });
+            }
         }
     }
 }

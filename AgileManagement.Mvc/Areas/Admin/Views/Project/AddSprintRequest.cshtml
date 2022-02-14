@@ -1,0 +1,99 @@
+﻿
+@{
+    ViewData["Title"] = "AddSprintRequest";
+    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
+}
+
+@model AgileManagement.Application.ProjectWithSprintResponseDto
+
+<div class="container">
+    <div class="row border">
+        <div class="border col-md-3">@Model.Projects[0].Name</div>
+
+        <div class="border col-md-9">
+            <button class="btn btn-primary" onclick="AddSprintWindow()">Add Sprint to Project</button>
+            <a asp-area="Admin" asp-controller="Project" asp-action="AddContributorRequest">Remove Sprint to Project</a>
+            <div class="accordion" id="accordionExample">
+                @foreach (var sprint in Enumerable.Reverse(Model.Projects[0].Sprints).ToList())
+                {
+
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="@sprint.SprintName">
+                            <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+                                @sprint.SprintName
+                            </button>
+                        </h2>
+                        <div id="collapseOne" class="accordion-collapse collapse show" aria-labelledby="headingOne" data-bs-parent="#accordionExample">
+                            <div class="accordion-body">
+                                <p>@sprint.StardDate-@sprint.EndDate</p>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+            <div style="display: none" id="sprintadded" class="row">
+                <div class="col-md-3">
+
+                </div>
+                <div class="col-md-6">
+                    <p class="text-center">Sprint Details</p>
+                    <input type="date" value="@DateTime.Now.ToString("dd/mm/yyyy")" class="form-control" id="startdate">
+                    <input type="date" value="@DateTime.Now.AddDays(7).ToString("dd/mm/yy")" class="form-control" id="finishdate">
+                    <button onclick="AddSprint('@Model.Projects[0].ProjectId')">Kaydet</button>
+                </div>
+                <div class="col-md-3">
+
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+@section Scripts{
+
+    <script>
+
+        function AddSprintWindow() {
+
+            $('#sprintadded').toggle();
+
+        }
+
+        function AddSprint(projectId) {
+            console.log(projectId);
+            const startDate = $('#startdate').val();
+            const finishDate = $('#finishdate').val();
+            console.log(typeof (startDate))
+            console.log(startDate)
+
+            let sprint = {
+                startDate,
+                finishDate,
+                projectId
+            };
+            $.ajax({
+                method: 'Post',
+                url: '/Admin/Project/AddSprintRequest',
+                contentType: 'application/json',
+                data: JSON.stringify(sprint), // data body den gönder demek
+                success: (response) => {
+                    if (response.isSuccess) {
+                        alert("Başarılı")
+                    }
+                    else {
+                        alert(response.message);
+                    }
+                },
+                error: (error) => {
+
+                    alert(error);
+                }
+            })
+
+        }
+
+
+
+    </script>
+}

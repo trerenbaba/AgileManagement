@@ -15,6 +15,8 @@ namespace AgileManagement.Domain
         private List<Contributor> contributors = new List<Contributor>();
         public IReadOnlyList<Contributor> Contributers => contributors;
 
+        private List<Sprint> sprints = new List<Sprint>();
+        public IReadOnlyList<Sprint> Sprints => sprints;
         public string CreatedBy { get; private set; }
 
 
@@ -75,6 +77,46 @@ namespace AgileManagement.Domain
         {
             contributors.Remove(contributor);
             DomainEvent.Raise(new ContributorRevokeAccessEvent(this.Name,contributor.UserId));
+        }
+
+        public void AddSprint(Sprint sprint)
+        {
+            var lastSprint = sprints.OrderByDescending(x => x.EndDate).First();
+
+            if ((sprint.StartDate- DateTime.Now).Days < 0)
+            {
+                throw new Exception("Sprint başlangıç tarihiniz geçmiş tarih olamaz.");
+            }
+            if ((lastSprint.EndDate - sprint.StartDate).Days > 0)
+            {
+                throw new Exception("Girdiğiniz sprint tarihi son sprintten büyük olmadılıdır.");
+            }
+            if ((sprint.EndDate - sprint.StartDate).Days < 0)
+            {
+                throw new Exception("Sprint bitiş tarihi giriş tarihinden büyük olmadılıdır.");
+            }
+            if ((sprint.EndDate - sprint.StartDate).Days < 7 && (sprint.EndDate - sprint.StartDate).Days > 14)
+            {
+                throw new Exception("Sprint tarihi maksimum 1 hafta olmalıdır.");
+            }
+            sprint.SetSprintName(sprints.Count+1);
+            sprints.Add(sprint);
+        }
+
+        public void RemoveSprint(Sprint sprint)
+        {
+            sprints.Remove(sprint);
+            SprintNameGenerator(sprints);
+        }
+
+        public void SprintNameGenerator(List<Sprint> sprints)
+        {
+            int sayac = 1;
+            foreach (var sprint in sprints)
+            {
+                sprint.SprintName = "Sprint" + sayac++;
+            }
+
         }
 
     }
