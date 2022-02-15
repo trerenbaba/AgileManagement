@@ -16,6 +16,7 @@ namespace AgileManagement.Domain
         public Sprint(DateTime startDate, DateTime endDate)
         {
             Id = Guid.NewGuid().ToString();
+            SetSprintTime(startDate, endDate);
         }
 
         private void SetSprintTime(DateTime startDate, DateTime endDate)
@@ -30,7 +31,6 @@ namespace AgileManagement.Domain
 
         public void SetSprintName(int sprintCount)
         {
-
             this.SprintName = "Sprint" + sprintCount;
         }
 

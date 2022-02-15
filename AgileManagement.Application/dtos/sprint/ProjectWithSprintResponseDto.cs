@@ -22,6 +22,6 @@ namespace AgileManagement.Application
     }
     public class ProjectWithSprintResponseDto
     {
-        public List<ProjectSprintDto> Projects = new List<ProjectSprintDto>();
+        public ProjectSprintDto Project = new ProjectSprintDto();
     }
 }

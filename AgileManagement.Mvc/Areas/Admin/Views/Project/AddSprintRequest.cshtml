@@ -8,92 +8,132 @@
 
 <div class="container">
     <div class="row border">
-        <div class="border col-md-3">@Model.Projects[0].Name</div>
+        <div class="border col-md-3">@Model.Project.Name</div>
 
         <div class="border col-md-9">
-            <button class="btn btn-primary" onclick="AddSprintWindow()">Add Sprint to Project</button>
+            <button class="btn btn-primary" data-toggle="modal" data-target="#exampleModal">Add Sprint to Project</button>
             <a asp-area="Admin" asp-controller="Project" asp-action="AddContributorRequest">Remove Sprint to Project</a>
-            <div class="accordion" id="accordionExample">
-                @foreach (var sprint in Enumerable.Reverse(Model.Projects[0].Sprints).ToList())
+
+            <div id="accordion">
+                @foreach (var sprint in Enumerable.Reverse(Model.Project.Sprints).ToList())
                 {
 
-                    <div class="accordion-item">
-                        <h2 class="accordion-header" id="@sprint.SprintName">
-                            <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
-                                @sprint.SprintName
-                            </button>
-                        </h2>
-                        <div id="collapseOne" class="accordion-collapse collapse show" aria-labelledby="headingOne" data-bs-parent="#accordionExample">
-                            <div class="accordion-body">
-                                <p>@sprint.StardDate-@sprint.EndDate</p>
+                    <div class="card">
+                        <div class="card-header" id="headingOne">
+                            <h5 class="mb-0">
+                                <button class="btn btn-link" data-toggle="collapse" data-target="#@sprint.SprintName" aria-expanded="true" aria-controls="collapseOne">
+                                    @sprint.SprintName   @sprint.StardDate - @sprint.EndDate
+                                </button>
+                            </h5>
+                        </div>
+
+                        <div id="@sprint.SprintName" class="collapse" aria-labelledby="headingOne" data-parent="#accordion">
+                            <div class="card-body">
+                                Gelişme aşamasında
                             </div>
                         </div>
                     </div>
+
                 }
             </div>
-            <div style="display: none" id="sprintadded" class="row">
-                <div class="col-md-3">
 
-                </div>
-                <div class="col-md-6">
-                    <p class="text-center">Sprint Details</p>
-                    <input type="date" value="@DateTime.Now.ToString("dd/mm/yyyy")" class="form-control" id="startdate">
-                    <input type="date" value="@DateTime.Now.AddDays(7).ToString("dd/mm/yy")" class="form-control" id="finishdate">
-                    <button onclick="AddSprint('@Model.Projects[0].ProjectId')">Kaydet</button>
-                </div>
-                <div class="col-md-3">
 
+
+
+            <!-- Modal -->
+            <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="exampleModalLabel">@Model.Project.Name</h5>
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        <div class="modal-body">
+                            <label>Başlangıç Tarihi :</label>
+                            <input id="startdate" type="date" /> 
+                            <br />  
+                            <label>Bitiş Tarihi :</label>
+                            <input id="enddate" type="date" />
+                        </div>
+                        <div class="modal-footer">
+
+                            <button onclick="SaveChange('@Model.Project.ProjectId')" class="btn btn-primary">Save changes</button>
+                        </div>
+                    </div>
                 </div>
             </div>
+
+
         </div>
-
     </div>
-</div>
 
-@section Scripts{
+    @section Scripts{
 
-    <script>
+        <script>
 
-        function AddSprintWindow() {
 
-            $('#sprintadded').toggle();
 
-        }
+            function SaveChange(projectId) {
+                console.log(projectId);
+                const startDate = $('#startdate').val();
+                const endDate = $('#enddate').val();
+                console.log(startDate)
+                console.log("enddate", endDate)
 
-        function AddSprint(projectId) {
-            console.log(projectId);
-            const startDate = $('#startdate').val();
-            const finishDate = $('#finishdate').val();
-            console.log(typeof (startDate))
-            console.log(startDate)
-
-            let sprint = {
-                startDate,
-                finishDate,
-                projectId
-            };
-            $.ajax({
-                method: 'Post',
-                url: '/Admin/Project/AddSprintRequest',
-                contentType: 'application/json',
-                data: JSON.stringify(sprint), // data body den gönder demek
-                success: (response) => {
-                    if (response.isSuccess) {
-                        alert("Başarılı")
+                let sprint = {
+                    startDate,
+                    endDate,
+                    projectId
+                };
+                $.ajax({
+                    method: 'Post',
+                    url: '/Admin/Project/AddSprintRequest',
+                    contentType: 'application/json',
+                    data: JSON.stringify(sprint), // data body den gönder demek
+                    success: (response) => {
+                        console.log("response başarılı");
+                        if (response.isSuccess) {
+                            AddSprintSuccess(response.lastSprint);
+                        }
+                        else {
+                            console.log(response.message);
+                            
+                        }
+                    },
+                    error: (error) => {
+                        console.log("response başarısız")
+                        alert(error);
                     }
-                    else {
-                        alert(response.message);
-                    }
-                },
-                error: (error) => {
+                })
 
-                    alert(error);
-                }
-            })
-
-        }
+            }
 
 
+            function AddSprintSuccess(sprint) {
+                console.log(typeof (sprint.endDate))
+                console.log(sprint)
 
-    </script>
-}
+
+                $('#accordion').append(`<div class="card">
+                    <div class="card-header" id="headingOne">
+                        <h5 class="mb-0">
+                            <button class="btn btn-link" data-toggle="collapse" data-target="#${sprint.sprintName}" aria-expanded="true" aria-controls="collapseOne">
+                                ${sprint.sprintName.slice(0, 10).split("-").reverse().join("-")}   ${sprint.StardDate.slice(0, 10).split("-").reverse().join("-")} - ${sprint.EndDate.slice(0, 10).split("-").reverse().join("-")}
+                            </button>
+                        </h5>
+                    </div>
+
+                    <div id="${sprint.sprintName}" class="collapse" aria-labelledby="headingOne" data-parent="#accordion">
+                        <div class="card-body">
+                            Geliştirme aşamasında...
+                        </div>
+                    </div>
+                </div>`);
+            }
+
+
+
+        </script>
+    }

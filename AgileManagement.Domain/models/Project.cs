@@ -81,21 +81,26 @@ namespace AgileManagement.Domain
 
         public void AddSprint(Sprint sprint)
         {
-            var lastSprint = sprints.OrderByDescending(x => x.EndDate).First();
+            if(sprints.Count != 0)
+            {
+                var lastSprint = sprints.OrderByDescending(x => x.EndDate).First();
+                if ((lastSprint.EndDate - sprint.StartDate).Days > 0)
+                {
+                    throw new Exception("Girdiğiniz sprint tarihi son sprintten büyük olmadılıdır.");
+                }
+            }
+             
 
             if ((sprint.StartDate- DateTime.Now).Days < 0)
             {
                 throw new Exception("Sprint başlangıç tarihiniz geçmiş tarih olamaz.");
             }
-            if ((lastSprint.EndDate - sprint.StartDate).Days > 0)
-            {
-                throw new Exception("Girdiğiniz sprint tarihi son sprintten büyük olmadılıdır.");
-            }
+           
             if ((sprint.EndDate - sprint.StartDate).Days < 0)
             {
                 throw new Exception("Sprint bitiş tarihi giriş tarihinden büyük olmadılıdır.");
             }
-            if ((sprint.EndDate - sprint.StartDate).Days < 7 && (sprint.EndDate - sprint.StartDate).Days > 14)
+            if ((sprint.EndDate - sprint.StartDate).Days < 7 || (sprint.EndDate - sprint.StartDate).Days > 14)
             {
                 throw new Exception("Sprint tarihi maksimum 1 hafta olmalıdır.");
             }
@@ -106,17 +111,17 @@ namespace AgileManagement.Domain
         public void RemoveSprint(Sprint sprint)
         {
             sprints.Remove(sprint);
-            SprintNameGenerator(sprints);
+            SprintNameGenerator();
         }
 
-        public void SprintNameGenerator(List<Sprint> sprints)
+        private void SprintNameGenerator()
         {
             int sayac = 1;
+            sprints = sprints.OrderByDescending(x => x.EndDate).ToList();
             foreach (var sprint in sprints)
             {
                 sprint.SprintName = "Sprint" + sayac++;
             }
-
         }
 
     }

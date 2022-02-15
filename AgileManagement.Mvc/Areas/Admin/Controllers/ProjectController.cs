@@ -131,19 +131,16 @@ namespace AgileManagement.Mvc.Areas.Admin.Controllers
         }
 
         [HttpPost]
-        public IActionResult AddSprintRequest([FromBody] SprintInputModel model)
+        public JsonResult AddSprintRequest([FromBody] SprintInputModel model)
         {
 
-            try
-            {
-                var project = _projectRepository.GetQuery().Include(x => x.Sprints).Where(c => c.Id == model.ProjectId).FirstOrDefault();
-                project.AddSprint(new Sprint(model.StartDate, model.EndDate));
-                return Json(new { isSuccess = true, message = "ok" });
-            }
-            catch (Exception ex)
-            {
-                return Json(new { isSuccess = false, message = ex.Message });
-            }
+
+            var project = _projectRepository.GetQuery().Include(x => x.Sprints).Where(c => c.Id == model.ProjectId).FirstOrDefault();
+            project.AddSprint(new Sprint(model.StartDate, model.EndDate));
+            _projectRepository.Save();
+            var lastSprint = project.Sprints.OrderByDescending(x => x.EndDate).FirstOrDefault();
+            return Json(new { isSuccess = true, message = "ok", lastSprint });
+
         }
     }
 }

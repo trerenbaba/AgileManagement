@@ -29,13 +29,13 @@ namespace AgileManagement.Application
                     StardDate = x.StartDate,
                     EndDate = x.EndDate,
                     SprintName = x.SprintName
-                }).OrderByDescending(x => x.SprintName).ToList()
+                }).OrderByDescending(x => x.EndDate).ToList()
 
-            }).ToList();
+            }).FirstOrDefault();
 
             var response = new ProjectWithSprintResponseDto
             {
-                Projects = project
+                Project = project
             };
 
             return response;
